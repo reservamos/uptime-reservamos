@@ -1,25 +1,10 @@
 <template>
-    <div class="px-2 pt-2 d-flex">
-        <button
-            type="button"
-            :title="$t('Clear current filters')"
-            class="clear-filters-btn btn"
-            :class="{ 'active': numFiltersActive > 0}"
-            tabindex="0"
-            :disabled="numFiltersActive === 0"
-            @click="clearFilters"
-        >
-            <font-awesome-icon icon="stream" />
-            <span v-if="numFiltersActive > 0" class="px-1 fw-bold">{{ numFiltersActive }}</span>
-            <font-awesome-icon v-if="numFiltersActive > 0" icon="times" />
-        </button>
-        <MonitorListFilterDropdown
-            :filterActive="filterState.status?.length > 0"
-        >
+    <div class="d-flex align-items-center flex-wrap gap-1">
+        <MonitorListFilterDropdown :filterActive="filterState.status?.length > 0">
             <template #status>
                 <Status v-if="filterState.status?.length === 1" :status="filterState.status[0]" />
                 <span v-else>
-                    {{ $t('Status') }}
+                    {{ $t("Status") }}
                 </span>
             </template>
             <template #dropdown>
@@ -120,11 +105,11 @@
             <template #status>
                 <Tag
                     v-if="filterState.tags?.length === 1"
-                    :item="tagsList.find(tag => tag.id === filterState.tags[0])"
+                    :item="tagsList.find((tag) => tag.id === filterState.tags[0])"
                     :size="'sm'"
                 />
                 <span v-else>
-                    {{ $t('Tags') }}
+                    {{ $t("Tags") }}
                 </span>
             </template>
             <template #dropdown>
@@ -143,7 +128,7 @@
                 </li>
                 <li v-if="tagsList.length === 0">
                     <div class="dropdown-item disabled px-3">
-                        {{ $t('No tags found.') }}
+                        {{ $t("No tags found.") }}
                     </div>
                 </li>
             </template>
@@ -166,9 +151,9 @@ export default {
         filterState: {
             type: Object,
             required: true,
-        }
+        },
     },
-    emits: [ "updateFilter" ],
+    emits: ["updateFilter"],
     data() {
         return {
             tagsList: [],
@@ -178,14 +163,14 @@ export default {
         numFiltersActive() {
             let num = 0;
 
-            Object.values(this.filterState).forEach(item => {
+            Object.values(this.filterState).forEach((item) => {
                 if (item != null && item.length > 0) {
                     num += 1;
                 }
             });
 
             return num;
-        }
+        },
     },
     mounted() {
         this.getExistingTags();
@@ -193,14 +178,14 @@ export default {
     methods: {
         toggleStatusFilter(status) {
             let newFilter = {
-                ...this.filterState
+                ...this.filterState,
             };
 
             if (newFilter.status == null) {
-                newFilter.status = [ status ];
+                newFilter.status = [status];
             } else {
                 if (newFilter.status.includes(status)) {
-                    newFilter.status = newFilter.status.filter(item => item !== status);
+                    newFilter.status = newFilter.status.filter((item) => item !== status);
                 } else {
                     newFilter.status.push(status);
                 }
@@ -209,14 +194,14 @@ export default {
         },
         toggleActiveFilter(active) {
             let newFilter = {
-                ...this.filterState
+                ...this.filterState,
             };
 
             if (newFilter.active == null) {
-                newFilter.active = [ active ];
+                newFilter.active = [active];
             } else {
                 if (newFilter.active.includes(active)) {
-                    newFilter.active = newFilter.active.filter(item => item !== active);
+                    newFilter.active = newFilter.active.filter((item) => item !== active);
                 } else {
                     newFilter.active.push(active);
                 }
@@ -225,14 +210,14 @@ export default {
         },
         toggleTagFilter(tag) {
             let newFilter = {
-                ...this.filterState
+                ...this.filterState,
             };
 
             if (newFilter.tags == null) {
-                newFilter.tags = [ tag.id ];
+                newFilter.tags = [tag.id];
             } else {
                 if (newFilter.tags.includes(tag.id)) {
-                    newFilter.tags = newFilter.tags.filter(item => item !== tag.id);
+                    newFilter.tags = newFilter.tags.filter((item) => item !== tag.id);
                 } else {
                     newFilter.tags.push(tag.id);
                 }
@@ -252,11 +237,11 @@ export default {
             });
         },
         getTaggedMonitorCount(tag) {
-            return Object.values(this.$root.monitorList).filter(monitor => {
-                return monitor.tags.find(monitorTag => monitorTag.tag_id === tag.id);
+            return Object.values(this.$root.monitorList).filter((monitor) => {
+                return monitor.tags.find((monitorTag) => monitorTag.tag_id === tag.id);
             }).length;
-        }
-    }
+        },
+    },
 };
 </script>
 

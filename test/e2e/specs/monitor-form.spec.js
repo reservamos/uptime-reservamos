@@ -28,16 +28,16 @@ test.describe("Monitor Form", () => {
         await selectMonitorType(page);
 
         await page.getByTestId("add-condition-button").click();
-        expect(await page.getByTestId("condition").count()).toEqual(2); // 1 added by default + 1 explicitly added
+        expect(await page.getByTestId("condition").count()).toEqual(1); // 1 explicitly added
 
         await page.getByTestId("add-group-button").click();
         expect(await page.getByTestId("condition-group").count()).toEqual(1);
-        expect(await page.getByTestId("condition").count()).toEqual(3); // 2 solo conditions + 1 condition in group
+        expect(await page.getByTestId("condition").count()).toEqual(2); // 1 solo conditions + 1 condition in group
 
         await screenshot(testInfo, page);
 
         await page.getByTestId("remove-condition").first().click();
-        expect(await page.getByTestId("condition").count()).toEqual(2); // 1 solo condition + 1 condition in group
+        expect(await page.getByTestId("condition").count()).toEqual(1); // 0 solo condition + 1 condition in group
 
         await page.getByTestId("remove-condition-group").first().click();
         expect(await page.getByTestId("condition-group").count()).toEqual(0);
@@ -53,24 +53,27 @@ test.describe("Monitor Form", () => {
 
         const friendlyName = "Example DNS NS";
         await page.getByTestId("friendly-name-input").fill(friendlyName);
-        await page.getByTestId("hostname-input").fill("example.com");
+        await page.getByTestId("hostname-input").fill("kuma.pet");
 
         const resolveTypeSelect = page.getByTestId("resolve-type-select");
         await resolveTypeSelect.click();
         await resolveTypeSelect.getByRole("option", { name: "NS" }).click();
 
         await page.getByTestId("add-condition-button").click();
-        expect(await page.getByTestId("condition").count()).toEqual(2); // 1 added by default + 1 explicitly added
+        expect(await page.getByTestId("condition").count()).toEqual(1); // 1 explicitly added
 
-        await page.getByTestId("condition-value").nth(0).fill("a.iana-servers.net");
+        await page.getByTestId("add-condition-button").click();
+        expect(await page.getByTestId("condition").count()).toEqual(2); // 2 explicitly added
+
+        await page.getByTestId("condition-value").nth(0).fill("carl.ns.cloudflare.com");
         await page.getByTestId("condition-and-or").nth(0).selectOption("or");
-        await page.getByTestId("condition-value").nth(1).fill("b.iana-servers.net");
+        await page.getByTestId("condition-value").nth(1).fill("jean.ns.cloudflare.com");
 
         await screenshot(testInfo, page);
         await page.getByTestId("save-button").click();
         await page.waitForURL("/dashboard/*");
 
-        expect(page.getByTestId("monitor-status")).toHaveText("up", { ignoreCase: true });
+        await expect(page.getByTestId("monitor-status")).toHaveText("up", { ignoreCase: true });
 
         await screenshot(testInfo, page);
     });
@@ -83,13 +86,14 @@ test.describe("Monitor Form", () => {
 
         const friendlyName = "Example DNS NS";
         await page.getByTestId("friendly-name-input").fill(friendlyName);
-        await page.getByTestId("hostname-input").fill("example.com");
+        await page.getByTestId("hostname-input").fill("kuma.pet");
 
         const resolveTypeSelect = page.getByTestId("resolve-type-select");
         await resolveTypeSelect.click();
         await resolveTypeSelect.getByRole("option", { name: "NS" }).click();
 
-        expect(await page.getByTestId("condition").count()).toEqual(1); // 1 added by default
+        await page.getByTestId("add-condition-button").click();
+        expect(await page.getByTestId("condition").count()).toEqual(1); // 1 explicitly added
 
         await page.getByTestId("condition-value").nth(0).fill("definitely-not.net");
 
@@ -97,7 +101,37 @@ test.describe("Monitor Form", () => {
         await page.getByTestId("save-button").click();
         await page.waitForURL("/dashboard/*");
 
-        expect(page.getByTestId("monitor-status")).toHaveText("down", { ignoreCase: true });
+        await expect(page.getByTestId("monitor-status")).toHaveText("down", { ignoreCase: true });
+
+        await screenshot(testInfo, page);
+    });
+
+    test("save response settings persist", async ({ page }, testInfo) => {
+        await page.goto("./add");
+        await login(page);
+        await selectMonitorType(page, "http");
+
+        const friendlyName = "Example HTTP Save Response";
+        await page.getByTestId("friendly-name-input").fill(friendlyName);
+        await page.getByTestId("url-input").fill("https://www.example.com/");
+
+        // Expect error response save enabled by default
+        await expect(page.getByLabel("Save HTTP Error Response for Notifications")).toBeChecked();
+
+        await page.getByLabel("Save HTTP Success Response for Notifications").check();
+        await page.getByLabel("Save HTTP Error Response for Notifications").uncheck();
+        await page.getByLabel("Response Max Length (bytes)").fill("2048");
+
+        await screenshot(testInfo, page);
+        await page.getByTestId("save-button").click();
+        await page.waitForURL("/dashboard/*");
+
+        await page.getByRole("link", { name: "Edit" }).click();
+        await page.waitForURL("/edit/*");
+
+        await expect(page.getByLabel("Save HTTP Success Response for Notifications")).toBeHidden();
+        await expect(page.getByLabel("Save HTTP Error Response for Notifications")).not.toBeChecked();
+        await expect(page.getByLabel("Response Max Length (bytes)")).toHaveValue("2048");
 
         await screenshot(testInfo, page);
     });
