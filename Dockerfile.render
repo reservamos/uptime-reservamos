@@ -1,2 +1,9 @@
-# Usa la imagen base de uptime-kuma
+ARG NODE_VERSION=22.23.4
+FROM node:${NODE_VERSION}-bookworm-slim AS node-runtime
+
+# Actualiza Node mientras la imagen de Uptime Kuma incorpora el parche.
 FROM louislam/uptime-kuma:2
+ARG NODE_VERSION
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+ENV NODE_VERSION=${NODE_VERSION}
+RUN test "$(node --version)" = "v${NODE_VERSION}" && node --version
